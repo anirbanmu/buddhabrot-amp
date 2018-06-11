@@ -50,6 +50,7 @@ void write_png_from_array_views(UINT width, UINT height, const array_view<unsign
 
     // cout << max_red << ":" << max_green << ":" << max_blue << endl;
 
+    // sqrt cheats to pull up lows comparatively to highs
     auto buffer = vector<BYTE>(width * height * 4);
     {
         array_view<unsigned, 2> bufferView(height, width, reinterpret_cast<unsigned*>(buffer.data()));
