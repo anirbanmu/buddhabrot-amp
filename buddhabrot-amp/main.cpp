@@ -7,10 +7,10 @@
 #include <windows.h>
 #include <amp.h>
 #include <amp_graphics.h>
+#include <d3d11_4.h>
 
 #include "utilities.h"
-
-#include <d3d11_4.h>
+#include "basic_window.h"
 
 using namespace std;
 using concurrency::accelerator;
@@ -18,7 +18,7 @@ using concurrency::accelerator;
 const unsigned image_dimension = 4096;
 const unsigned image_size = image_dimension * image_dimension;
 
-int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
 {
     vector<accelerator> accelerators = accelerator::get_all();
     auto default_accelerator = find_if(begin(accelerators), end(accelerators), [](const accelerator& a) { return !a.get_is_emulated(); });
@@ -40,6 +40,26 @@ int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
     red_view.synchronize();
     blue_view.synchronize();
+
+    unsigned resized = 0;
+    auto window = BasicWindow(1280, 900, L"buddhabrot-amp", h_instance,
+        [&resized]()
+    {
+        wstringstream s;
+        s << ++resized << endl;
+        OutputDebugString(s.str().c_str());
+    }
+    );
+
+    auto msg = MSG();
+    while (msg.message != WM_QUIT)
+    {
+        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+    }
     
     write_png(image_dimension, image_dimension, red.get_buffer(), green.get_buffer(), blue.get_buffer(), L"image.png");
     write_png_from_array_views(image_dimension, image_dimension, red.get_array_view(), green.get_array_view(), blue.get_array_view(), L"image-amp.png");
