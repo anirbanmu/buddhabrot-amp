@@ -17,7 +17,9 @@ HWND BasicWindow::create_window(unsigned width, unsigned height, wstring title, 
     window_class.style = CS_HREDRAW | CS_VREDRAW;
     window_class.lpfnWndProc = static_window_proc;
     window_class.hInstance = h_instance;
-    window_class.lpszClassName = (title + L"-class").c_str();
+
+    auto window_class_name = title + L"-class";
+    window_class.lpszClassName = window_class_name.c_str();
     throw_hresult_on_failure(!RegisterClassEx(&window_class) ? E_UNEXPECTED : S_OK);
 
     auto hwnd = CreateWindowEx(0, window_class.lpszClassName, title.c_str(), WS_OVERLAPPEDWINDOW, 0, 0, width, height, NULL, NULL, h_instance, instance_pointer);

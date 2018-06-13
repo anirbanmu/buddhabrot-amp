@@ -44,11 +44,11 @@ int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
     unsigned resized = 0;
     auto window = BasicWindow(1280, 900, L"buddhabrot-amp", h_instance,
         [&resized]()
-    {
-        wstringstream s;
-        s << ++resized << endl;
-        OutputDebugString(s.str().c_str());
-    }
+        {
+            wstringstream s;
+            s << ++resized << endl;
+            OutputDebugString(s.str().c_str());
+        }
     );
 
     auto msg = MSG();
