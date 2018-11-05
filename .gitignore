@@ -261,5 +261,5 @@ __pycache__/
 *.pyc
 /buddhabrot-amp/image-amp.png
 /buddhabrot-amp/image.png
+/buddhabrot-amp/full_quad_vertex_shader.h
 /buddhabrot-amp/textured_quad_pixel_shader.h
-/buddhabrot-amp/textured_quad_pixel_shader.hlsl
