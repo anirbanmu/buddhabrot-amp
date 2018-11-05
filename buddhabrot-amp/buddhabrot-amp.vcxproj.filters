@@ -27,6 +27,12 @@
     <ClCompile Include="basic_window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="base_swapchain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="buddhabrot_presenter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utilities.h">
@@ -35,5 +41,23 @@
     <ClInclude Include="basic_window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="base_swapchain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="buddhabrot_presenter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="buddhabrot-amp.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="full_quad_vertex_shader.hlsl" />
+    <FxCompile Include="textured_quad_pixel_shader.hlsl" />
   </ItemGroup>
 </Project>

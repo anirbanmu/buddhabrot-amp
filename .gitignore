@@ -259,3 +259,7 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/buddhabrot-amp/image-amp.png
+/buddhabrot-amp/image.png
+/buddhabrot-amp/textured_quad_pixel_shader.h
+/buddhabrot-amp/textured_quad_pixel_shader.hlsl

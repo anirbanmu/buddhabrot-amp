@@ -11,6 +11,7 @@
 
 #include "utilities.h"
 #include "basic_window.h"
+#include "buddhabrot_presenter.h"
 
 using namespace std;
 using concurrency::accelerator;
@@ -41,15 +42,15 @@ int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
     red_view.synchronize();
     blue_view.synchronize();
 
-    unsigned resized = 0;
+    bool resized = false;
     auto window = BasicWindow(1280, 900, L"buddhabrot-amp", h_instance,
         [&resized]()
         {
-            wstringstream s;
-            s << ++resized << endl;
-            OutputDebugString(s.str().c_str());
+            resized = true;
         }
     );
+
+    auto presenter = BuddhabrotPresenter(window.handle(), default_accelerator->create_view());
 
     auto msg = MSG();
     while (msg.message != WM_QUIT)
@@ -58,6 +59,17 @@ int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
         {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
+        }
+        else
+        {
+            if (resized) {
+                resized = false;
+                wstringstream s;
+                s << "resized" << endl;
+                OutputDebugString(s.str().c_str());
+                presenter.resize();
+            }
+            presenter.present();
         }
     }
     
