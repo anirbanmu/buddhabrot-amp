@@ -19,11 +19,30 @@ using concurrency::accelerator;
 const unsigned image_dimension = 4096;
 const unsigned image_size = image_dimension * image_dimension;
 
+namespace
+{
+#if defined(_DEBUG)
+    const auto CREATE_DEVICE_FLAGS = D3D11_CREATE_DEVICE_DEBUG;
+#else
+    const auto CREATE_DEVICE_FLAGS = D3D11_CREATE_DEVICE_FLAG();
+#endif
+}
+
+CComPtr<ID3D11Device5> create_device()
+{
+    CComPtr<ID3D11Device> device;
+    D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, NULL, CREATE_DEVICE_FLAGS, nullptr, 0, D3D11_SDK_VERSION, &device, nullptr, nullptr);
+    return query_interface<ID3D11Device5>(device);
+}
+
 int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
 {
     vector<accelerator> accelerators = accelerator::get_all();
     auto default_accelerator = find_if(begin(accelerators), end(accelerators), [](const accelerator& a) { return !a.get_is_emulated(); });
     accelerator::set_default(default_accelerator->device_path);
+
+    auto d3d_device = create_device();
+    auto accelerator_view = concurrency::direct3d::create_accelerator_view(d3d_device);
 
     AmpArray<unsigned, 2> red(image_dimension, image_dimension);
     AmpArray<unsigned, 2> green(image_dimension, image_dimension);
@@ -42,6 +61,10 @@ int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
     red_view.synchronize();
     blue_view.synchronize();
 
+    auto red_array = concurrency::array<unsigned, 2>(image_dimension, image_dimension, red.get_buffer().begin(), red.get_buffer().end(), accelerator_view);
+    auto blue_array = concurrency::array<unsigned, 2>(image_dimension, image_dimension, blue.get_buffer().begin(), blue.get_buffer().end(), accelerator_view);
+    auto green_array = concurrency::array<unsigned, 2>(image_dimension, image_dimension, green.get_buffer().begin(), green.get_buffer().end(), accelerator_view);
+
     bool resized = false;
     auto window = BasicWindow(1280, 900, L"buddhabrot-amp", h_instance,
         [&resized]()
@@ -50,7 +73,7 @@ int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
         }
     );
 
-    auto presenter = BuddhabrotPresenter(window.handle(), default_accelerator->create_view());
+    auto presenter = BuddhabrotPresenter(window.handle(), d3d_device);
 
     auto msg = MSG();
     while (msg.message != WM_QUIT)
@@ -69,7 +92,7 @@ int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
                 OutputDebugString(s.str().c_str());
                 presenter.resize();
             }
-            presenter.present();
+            presenter.render_and_present(red_array, green_array, blue_array);
         }
     }
     

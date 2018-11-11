@@ -104,6 +104,21 @@ template<typename T> T max_element_in_array_view(const concurrency::array_view<T
     return max_element_in_array(scratch_array);
 }
 
+template<typename T> T max_element_in_concurrency_array(const concurrency::array<T, 2>& buffer)
+{
+    const auto extent = buffer.get_extent();
+
+    auto scratch_array = concurrency::array<T, 1>(extent[0] * extent[1], buffer.accelerator_view);
+    parallel_for_each(extent,
+        [=, &buffer, &scratch_array](concurrency::index<2> idx) restrict(amp)
+        {
+            scratch_array[idx[0] * extent[1] + idx[1]] = buffer[idx];
+        }
+    );
+
+    return max_element_in_array(scratch_array);
+}
+
 template<typename T> T max_element_in_array(concurrency::array<T, 1>& scratch_array)
 {
     const auto extent = scratch_array.get_extent();
