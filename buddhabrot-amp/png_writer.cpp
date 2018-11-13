@@ -32,6 +32,43 @@ struct PngWriterResources
     CComPtr<IWICStream> stream;
 };
 
+void write_png_from_arrays(UINT width, UINT height, const concurrency::array<unsigned, 2>& red, const concurrency::array<unsigned, 2>& green, const concurrency::array<unsigned, 2>& blue, const wstring filename)
+{
+    auto resources = PngWriterResources(filename);
+
+    CComPtr<IWICBitmapFrameEncode> frame;
+    throw_hresult_on_failure(resources.encoder->CreateNewFrame(&frame, nullptr));
+    throw_hresult_on_failure(frame->Initialize(nullptr));
+    throw_hresult_on_failure(frame->SetSize(width, height));
+
+    GUID pixel_format = GUID_WICPixelFormat32bppBGRA;
+    throw_hresult_on_failure(frame->SetPixelFormat(&pixel_format));
+
+    const auto max_red = max_element_in_concurrency_array(red);
+    const auto max_green = max_element_in_concurrency_array(green);
+    const auto max_blue = max_element_in_concurrency_array(blue);
+
+    // sqrt cheats to pull up lows comparatively to highs
+    auto buffer = vector<BYTE>(width * height * 4);
+    {
+        array_view<unsigned, 2> bufferView(height, width, reinterpret_cast<unsigned*>(buffer.data()));
+
+        parallel_for_each(bufferView.extent,
+            [=, &red, &green, &blue](index<2> idx) restrict(amp)
+        {
+            bufferView[idx] = 255 << 24 |
+                static_cast<unsigned>(255 * concurrency::fast_math::sqrt(red[idx] / static_cast<float>(max_red))) << 16 |
+                static_cast<unsigned>(255 * concurrency::fast_math::sqrt(green[idx] / static_cast<float>(max_green))) << 8 |
+                static_cast<unsigned>(255 * concurrency::fast_math::sqrt(blue[idx] / static_cast<float>(max_blue)));
+        }
+        );
+    }
+
+    throw_hresult_on_failure(frame->WritePixels(height, width * 4, width * height * 4, buffer.data()));
+    throw_hresult_on_failure(frame->Commit());
+    throw_hresult_on_failure(resources.encoder->Commit());
+}
+
 void write_png_from_array_views(UINT width, UINT height, const array_view<unsigned, 2>& red, const array_view<unsigned, 2>& green, const array_view<unsigned, 2>& blue, const wstring filename)
 {
     auto resources = PngWriterResources(filename);

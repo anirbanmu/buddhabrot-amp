@@ -57,8 +57,41 @@ template<typename DurationType = std::chrono::duration<double>> class Timer
         Timer& operator=(Timer& t);
 };
 
+template<typename T> struct Complex
+{
+    Complex(T real, T imaginary) restrict(amp) : r(real), i(imaginary)
+    {
+    }
+
+    Complex& operator=(const Complex& other) restrict(amp)
+    {
+        r = other.r;
+        i = other.i;
+        return *this;
+    }
+
+    Complex operator+(const Complex& other) const restrict(amp)
+    {
+        return Complex(r + other.r, i + other.i);
+    }
+
+    Complex operator*(const Complex& other) const restrict(amp)
+    {
+        return Complex(r * other.r - (i * other.i), r * other.i + other.r * i);
+    }
+
+    T magnitude_squared() const restrict(amp)
+    {
+        return r * r + i * i;
+    }
+
+    T r;
+    T i;
+};
+
 void write_png(UINT width, UINT height, std::vector<unsigned>& red, std::vector<unsigned>& green, std::vector<unsigned>& blue, const std::wstring filename);
 void write_png_from_array_views(UINT width, UINT height, const concurrency::array_view<unsigned, 2>& red, const concurrency::array_view<unsigned, 2>& green, const concurrency::array_view<unsigned, 2>& blue, const std::wstring filename);
+void write_png_from_arrays(UINT width, UINT height, const concurrency::array<unsigned, 2>& red, const concurrency::array<unsigned, 2>& green, const concurrency::array<unsigned, 2>& blue, const std::wstring filename);
 
 void throw_hresult_on_failure(HRESULT);
 

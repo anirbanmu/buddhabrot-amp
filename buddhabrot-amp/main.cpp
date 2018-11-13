@@ -12,6 +12,7 @@
 #include "utilities.h"
 #include "basic_window.h"
 #include "buddhabrot_presenter.h"
+#include "buddhabrot_generator.h"
 
 using namespace std;
 using concurrency::accelerator;
@@ -37,36 +38,11 @@ CComPtr<ID3D11Device5> create_device()
 
 int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
 {
-    vector<accelerator> accelerators = accelerator::get_all();
-    auto default_accelerator = find_if(begin(accelerators), end(accelerators), [](const accelerator& a) { return !a.get_is_emulated(); });
-    accelerator::set_default(default_accelerator->device_path);
-
     auto d3d_device = create_device();
     auto accelerator_view = concurrency::direct3d::create_accelerator_view(d3d_device);
 
-    AmpArray<unsigned, 2> red(image_dimension, image_dimension);
-    AmpArray<unsigned, 2> green(image_dimension, image_dimension);
-    AmpArray<unsigned, 2> blue(image_dimension, image_dimension);
-
-    auto blue_view = blue.get_array_view();
-    auto red_view = red.get_array_view();
-    parallel_for_each(blue_view.get_extent(),
-        [=](concurrency::index<2> idx) restrict(amp)
-        {
-            red_view[idx] = idx[0] ^ idx[1];
-            blue_view[idx] = idx[0] + idx[1];
-        }
-    );
-
-    red_view.synchronize();
-    blue_view.synchronize();
-
-    auto red_array = concurrency::array<unsigned, 2>(image_dimension, image_dimension, red.get_buffer().begin(), red.get_buffer().end(), accelerator_view);
-    auto blue_array = concurrency::array<unsigned, 2>(image_dimension, image_dimension, blue.get_buffer().begin(), blue.get_buffer().end(), accelerator_view);
-    auto green_array = concurrency::array<unsigned, 2>(image_dimension, image_dimension, green.get_buffer().begin(), green.get_buffer().end(), accelerator_view);
-
     bool resized = false;
-    auto window = BasicWindow(1280, 900, L"buddhabrot-amp", h_instance,
+    auto window = BasicWindow(800, 800, L"buddhabrot-amp", h_instance,
         [&resized]()
         {
             resized = true;
@@ -74,6 +50,10 @@ int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
     );
 
     auto presenter = BuddhabrotPresenter(window.handle(), d3d_device);
+
+    auto red_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(image_dimension, image_dimension), 512 * 512, 1024);
+    auto green_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(image_dimension, image_dimension), 512 * 512, 2048);
+    auto blue_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(image_dimension, image_dimension), 512 * 512, 4096);
 
     auto msg = MSG();
     while (msg.message != WM_QUIT)
@@ -87,16 +67,15 @@ int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
         {
             if (resized) {
                 resized = false;
-                wstringstream s;
-                s << "resized" << endl;
-                OutputDebugString(s.str().c_str());
+                // wstringstream s;
+                // s << "resized" << endl;
+                // OutputDebugString(s.str().c_str());
                 presenter.resize();
             }
-            presenter.render_and_present(red_array, green_array, blue_array);
+            presenter.render_and_present(red_generator.iterate(), green_generator.iterate(), blue_generator.iterate());
         }
     }
     
-    write_png(image_dimension, image_dimension, red.get_buffer(), green.get_buffer(), blue.get_buffer(), L"image.png");
-    write_png_from_array_views(image_dimension, image_dimension, red.get_array_view(), green.get_array_view(), blue.get_array_view(), L"image-amp.png");
+    write_png_from_arrays(image_dimension, image_dimension, red_generator.get_record_array(), green_generator.get_record_array(), blue_generator.get_record_array(), L"image-amp.png");
     return 0;
 }

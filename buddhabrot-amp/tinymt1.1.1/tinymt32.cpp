@@ -23,7 +23,7 @@
  * @param x 32-bit integer
  * @return 32-bit integer
  */
-static uint32_t ini_func1(uint32_t x) {
+static uint32_t ini_func1(uint32_t x) restrict(amp) {
     return (x ^ (x >> 27)) * UINT32_C(1664525);
 }
 
@@ -33,7 +33,7 @@ static uint32_t ini_func1(uint32_t x) {
  * @param x 32-bit integer
  * @return 32-bit integer
  */
-static uint32_t ini_func2(uint32_t x) {
+static uint32_t ini_func2(uint32_t x) restrict(amp) {
     return (x ^ (x >> 27)) * UINT32_C(1566083941);
 }
 
@@ -41,7 +41,7 @@ static uint32_t ini_func2(uint32_t x) {
  * This function certificate the period of 2^127-1.
  * @param random tinymt state vector.
  */
-static void period_certification(tinymt32_t * random) {
+static void period_certification(tinymt32_t * random) restrict(amp) {
     if ((random->status[0] & TINYMT32_MASK) == 0 &&
 	random->status[1] == 0 &&
 	random->status[2] == 0 &&
@@ -59,7 +59,7 @@ static void period_certification(tinymt32_t * random) {
  * @param random tinymt state vector.
  * @param seed a 32-bit unsigned integer used as a seed.
  */
-void tinymt32_init(tinymt32_t * random, uint32_t seed) {
+void tinymt32_init(tinymt32_t * random, uint32_t seed) restrict(amp) {
     random->status[0] = seed;
     random->status[1] = random->mat1;
     random->status[2] = random->mat2;
@@ -83,7 +83,7 @@ void tinymt32_init(tinymt32_t * random, uint32_t seed) {
  * @param key_length the length of init_key.
  */
 void tinymt32_init_by_array(tinymt32_t * random, uint32_t init_key[],
-			    int key_length) {
+			    int key_length) restrict(amp) {
     const int lag = 1;
     const int mid = 1;
     const int size = 4;

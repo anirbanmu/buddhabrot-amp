@@ -111,10 +111,6 @@ void BuddhabrotPresenter::render_and_present(concurrency::array<unsigned, 2>& r,
     );
 
     auto d3d_texture = query_interface<ID3D11Texture2D>(CComPtr<IUnknown>(concurrency::graphics::direct3d::get_texture(intermediate_texture)));
-
-    D3D11_TEXTURE2D_DESC d;
-    d3d_texture->GetDesc(&d);
-
     CComPtr<ID3D11ShaderResourceView> srv;
     {
         auto srv_desc = CD3D11_SHADER_RESOURCE_VIEW_DESC(d3d_texture.p, D3D11_SRV_DIMENSION_TEXTURE2D, DXGI_FORMAT_R8G8B8A8_UNORM);

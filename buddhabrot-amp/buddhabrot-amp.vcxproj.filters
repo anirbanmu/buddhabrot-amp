@@ -33,6 +33,9 @@
     <ClCompile Include="buddhabrot_presenter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="buddhabrot_generator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utilities.h">
@@ -48,6 +51,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="buddhabrot_presenter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="buddhabrot_generator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
