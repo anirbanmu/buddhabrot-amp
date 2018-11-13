@@ -22,3 +22,6 @@ This function is similar in it's logic to the `BuddhabrotPresenter` in that it t
 - [DXGI](https://docs.microsoft.com/en-us/windows/desktop/api/_direct3ddxgi/)
 - [WIC](https://docs.microsoft.com/en-us/windows/desktop/wic/-wic-about-windows-imaging-codec)
 - [TinyMT](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/TINYMT/index.html)
+
+## Sample image produced
+![sample](docs/images/image-amp.png)

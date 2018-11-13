@@ -17,7 +17,7 @@
 using namespace std;
 using concurrency::accelerator;
 
-const unsigned image_dimension = 4096;
+const unsigned image_dimension = 4096 * 2;
 const unsigned image_size = image_dimension * image_dimension;
 
 namespace
