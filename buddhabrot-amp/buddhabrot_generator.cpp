@@ -23,7 +23,7 @@ BuddhabrotGenerator::BuddhabrotGenerator(concurrency::accelerator_view accel_vie
 {
 }
 
-concurrency::array<unsigned, 2>& BuddhabrotGenerator::iterate()
+const concurrency::array<unsigned, 2>& BuddhabrotGenerator::iterate()
 {
     auto randoms = generate_random_numbers();
     auto max_iterations = max_escape_iterations;

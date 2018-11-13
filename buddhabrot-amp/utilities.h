@@ -137,7 +137,8 @@ template<typename T> T max_element_in_array_view(const concurrency::array_view<T
     return max_element_in_array(scratch_array);
 }
 
-template<typename T> T max_element_in_concurrency_array(const concurrency::array<T, 2>& buffer)
+// index 0 in returned array contains max
+template<typename T> concurrency::array<T, 1> max_element_in_concurrency_array(const concurrency::array<T, 2>& buffer)
 {
     const auto extent = buffer.get_extent();
 
@@ -149,10 +150,12 @@ template<typename T> T max_element_in_concurrency_array(const concurrency::array
         }
     );
 
-    return max_element_in_array(scratch_array);
+    calculate_array_max_in_place(scratch_array);
+    return scratch_array;
 }
 
-template<typename T> T max_element_in_array(concurrency::array<T, 1>& scratch_array)
+// destructively calculate max of scratch_array in place (index 0 will contain max afterwards)
+template<typename T> void calculate_array_max_in_place(concurrency::array<T, 1>& scratch_array)
 {
     const auto extent = scratch_array.get_extent();
 
@@ -166,6 +169,11 @@ template<typename T> T max_element_in_array(concurrency::array<T, 1>& scratch_ar
             }
         );
     }
+}
+
+template<typename T> T max_element_in_array(concurrency::array<T, 1>& scratch_array)
+{
+    calculate_array_max_in_place(scratch_array);
 
     unsigned last_value[1];
     auto max_value = concurrency::array_view<T, 1>(1, last_value);

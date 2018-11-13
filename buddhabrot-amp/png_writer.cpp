@@ -44,22 +44,22 @@ void write_png_from_arrays(UINT width, UINT height, const concurrency::array<uns
     GUID pixel_format = GUID_WICPixelFormat32bppBGRA;
     throw_hresult_on_failure(frame->SetPixelFormat(&pixel_format));
 
-    const auto max_red = max_element_in_concurrency_array(red);
-    const auto max_green = max_element_in_concurrency_array(green);
-    const auto max_blue = max_element_in_concurrency_array(blue);
+    const auto max_red_array = max_element_in_concurrency_array(red);
+    const auto max_green_array = max_element_in_concurrency_array(green);
+    const auto max_blue_array = max_element_in_concurrency_array(blue);
 
     // sqrt cheats to pull up lows comparatively to highs
     auto buffer = vector<BYTE>(width * height * 4);
     {
-        array_view<unsigned, 2> bufferView(height, width, reinterpret_cast<unsigned*>(buffer.data()));
+        array_view<unsigned, 2> buffer_view(height, width, reinterpret_cast<unsigned*>(buffer.data()));
 
-        parallel_for_each(bufferView.extent,
-            [=, &red, &green, &blue](index<2> idx) restrict(amp)
+        parallel_for_each(buffer_view.extent,
+            [&, buffer_view](index<2> idx) restrict(amp)
         {
-            bufferView[idx] = 255 << 24 |
-                static_cast<unsigned>(255 * concurrency::fast_math::sqrt(red[idx] / static_cast<float>(max_red))) << 16 |
-                static_cast<unsigned>(255 * concurrency::fast_math::sqrt(green[idx] / static_cast<float>(max_green))) << 8 |
-                static_cast<unsigned>(255 * concurrency::fast_math::sqrt(blue[idx] / static_cast<float>(max_blue)));
+            buffer_view[idx] = 255 << 24 |
+                static_cast<unsigned>(255 * concurrency::fast_math::sqrt(red[idx] / static_cast<float>(max_red_array[0]))) << 16 |
+                static_cast<unsigned>(255 * concurrency::fast_math::sqrt(green[idx] / static_cast<float>(max_green_array[0]))) << 8 |
+                static_cast<unsigned>(255 * concurrency::fast_math::sqrt(blue[idx] / static_cast<float>(max_blue_array[0])));
         }
         );
     }

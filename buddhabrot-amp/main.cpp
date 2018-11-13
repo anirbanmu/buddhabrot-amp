@@ -19,6 +19,7 @@ using concurrency::accelerator;
 
 const unsigned image_dimension = 4096 * 2;
 const unsigned image_size = image_dimension * image_dimension;
+const unsigned points_per_iteration = 512 * 512;
 
 namespace
 {
@@ -51,9 +52,9 @@ int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
 
     auto presenter = BuddhabrotPresenter(window.handle(), d3d_device);
 
-    auto red_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(image_dimension, image_dimension), 512 * 512, 1024);
-    auto green_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(image_dimension, image_dimension), 512 * 512, 2048);
-    auto blue_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(image_dimension, image_dimension), 512 * 512, 4096);
+    auto red_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(image_dimension, image_dimension), points_per_iteration, 1024);
+    auto green_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(image_dimension, image_dimension), points_per_iteration, 2048);
+    auto blue_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(image_dimension, image_dimension), points_per_iteration, 4096);
 
     auto msg = MSG();
     while (msg.message != WM_QUIT)

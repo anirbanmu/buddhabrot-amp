@@ -8,8 +8,8 @@ class BuddhabrotGenerator
         // points_per_iteration should be a square
         // max_escape_iterations is how many iterations is considered before counting an initial complex number to be "escaping" the mandelbrot set
         BuddhabrotGenerator(concurrency::accelerator_view, concurrency::extent<2> dimensions, unsigned points_per_iteration, unsigned max_escape_iterations);
-        concurrency::array<unsigned, 2>& iterate();
-        concurrency::array<unsigned, 2>& get_record_array()
+        const concurrency::array<unsigned, 2>& iterate();
+        const concurrency::array<unsigned, 2>& get_record_array()
         {
             return count_array;
         }

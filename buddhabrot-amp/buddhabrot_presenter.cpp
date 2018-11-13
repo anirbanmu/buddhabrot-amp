@@ -15,10 +15,10 @@ CComPtr<ID3D11DeviceContext3> immediate_context(ID3D11Device5* device)
 }
 
 BuddhabrotPresenter::BuddhabrotPresenter(HWND hwnd, CComPtr<ID3D11Device5> device) :
-    intermediate_texture(concurrency::extent<2>(1, 1), 8),
     device(device),
     context(query_interface<ID3D11DeviceContext4>(immediate_context(device))),
-    swapchain(BaseSwapChain(hwnd, device))
+    swapchain(BaseSwapChain(hwnd, device)),
+    intermediate_texture(concurrency::extent<2>(1, 1), 8)
 {
     create_shaders();
     create_pipeline_objects();
@@ -84,7 +84,7 @@ void BuddhabrotPresenter::resize()
     create_backbuffer_render_target();
 }
 
-void BuddhabrotPresenter::render_and_present(concurrency::array<unsigned, 2>& r, concurrency::array<unsigned, 2>& g, concurrency::array<unsigned, 2>& b)
+void BuddhabrotPresenter::render_and_present(const concurrency::array<unsigned, 2>& r, const concurrency::array<unsigned, 2>& g, const concurrency::array<unsigned, 2>& b)
 {
     if (intermediate_texture.get_extent() != r.get_extent())
     {
@@ -93,17 +93,17 @@ void BuddhabrotPresenter::render_and_present(concurrency::array<unsigned, 2>& r,
 
     auto intermediate_view = concurrency::graphics::texture_view<concurrency::graphics::unorm_4, 2>(intermediate_texture);
 
-    const auto red_max = max_element_in_concurrency_array(r);
-    const auto green_max = max_element_in_concurrency_array(g);
-    const auto blue_max = max_element_in_concurrency_array(b);
+    const auto red_max_array = max_element_in_concurrency_array(r);
+    const auto green_max_array = max_element_in_concurrency_array(g);
+    const auto blue_max_array = max_element_in_concurrency_array(b);
 
     parallel_for_each(intermediate_texture.get_extent(),
-        [=, &r, &g, &b](concurrency::index<2> idx) restrict(amp)
+        [&, intermediate_view](concurrency::index<2> idx) restrict(amp)
         {
             concurrency::graphics::unorm_4 value(
-                concurrency::fast_math::sqrt(r[idx] / static_cast<float>(red_max)),
-                concurrency::fast_math::sqrt(g[idx] / static_cast<float>(green_max)),
-                concurrency::fast_math::sqrt(b[idx] / static_cast<float>(blue_max)),
+                concurrency::fast_math::sqrt(r[idx] / static_cast<float>(red_max_array[0])),
+                concurrency::fast_math::sqrt(g[idx] / static_cast<float>(green_max_array[0])),
+                concurrency::fast_math::sqrt(b[idx] / static_cast<float>(blue_max_array[0])),
                 1.0);
 
             intermediate_view.set(idx, value);
