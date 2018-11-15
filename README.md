@@ -11,7 +11,7 @@ buddhabrot-amp is a [buddhabrot](https://en.wikipedia.org/wiki/Buddhabrot) gener
 This class represents the core logic of generating the buddhabrot. It uses C++ AMP to find complex numbers which escape the [Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set) & mark their path on a "canvas" up until they're considered to have escaped. The canvas that is used to record the paths of these escaping points make up the buddhabrot. We color a point on this canvas brighter/darker based on how many paths hit/did not hit this particular cell/point.
 
 ### `BuddhabrotPresenter`
-This class simply takes three canvases of each dimensions (red, green & blue), puts the three color channels into one texture & finally samples this texture into a DXGI swapchain to be displayed on the screen.
+This class simply takes three canvases of equal dimensions for each color (red, green & blue) , puts the three color channels into one texture & finally samples this texture into a DXGI swapchain to be displayed on the screen.
 
 ### `write_png_from_arrays`
 This function is similar in it's logic to the `BuddhabrotPresenter` in that it takes 3 canvases, combines them into one image & writes that image out to disk as a PNG file.
@@ -22,6 +22,7 @@ This function is similar in it's logic to the `BuddhabrotPresenter` in that it t
 - [DXGI](https://docs.microsoft.com/en-us/windows/desktop/api/_direct3ddxgi/)
 - [WIC](https://docs.microsoft.com/en-us/windows/desktop/wic/-wic-about-windows-imaging-codec)
 - [TinyMT](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/TINYMT/index.html)
+- [args](https://github.com/Taywee/args)
 
 ## Sample image produced
 ![sample](docs/images/image-amp.png)

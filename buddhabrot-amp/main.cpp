@@ -4,10 +4,13 @@
 #include <random>
 #include <limits>
 
+#define NOMINMAX
 #include <windows.h>
 #include <amp.h>
 #include <amp_graphics.h>
 #include <d3d11_4.h>
+
+#include "args-6.2.0/args.hxx"
 
 #include "utilities.h"
 #include "basic_window.h"
@@ -16,10 +19,6 @@
 
 using namespace std;
 using concurrency::accelerator;
-
-const unsigned image_dimension = 4096 * 2;
-const unsigned image_size = image_dimension * image_dimension;
-const unsigned points_per_iteration = 512 * 512;
 
 namespace
 {
@@ -37,8 +36,75 @@ CComPtr<ID3D11Device5> create_device()
     return query_interface<ID3D11Device5>(device);
 }
 
+struct CommandLineArguments
+{
+    void parse(int argc, const char * const * argv)
+    {
+        parser.ParseCLI(argc, argv);
+        if (dimension_flag) dimension = args::get(dimension_flag);
+        if (points_flag) points_per_iteration = args::get(points_flag);
+        if (filename_flag)
+        {
+            wstringstream ss;
+            ss << args::get(filename_flag).c_str();
+            filename = ss.str();
+        }
+    }
+
+    unsigned dimension{ 4096 };
+    unsigned points_per_iteration{ 512 * 512 };
+    wstring filename{ L"buddhabrot-amp.png" };
+    args::ArgumentParser parser{ "Usage: buddhabrot-amp.exe {OPTIONS}...", "Source & help at: <https://github.com/anirbanmu/buddhabrot-amp>" };
+    args::HelpFlag help{ parser, "help", "Display this help menu", { 'h', "help" } };
+    args::ValueFlag<unsigned> dimension_flag{ parser, "dimension", "Dimension in pixels of the buddhabrot generated", { 'd', "dimension" } };
+    args::ValueFlag<unsigned> points_flag{ parser, "points", "Number of points iterated on each frame", { 'p', "points" } };
+    args::ValueFlag<string> filename_flag{ parser, "filename", "Path of output PNG file", { 'f', "file" } };
+};
+
+class ConsoleAttacher
+{
+    public:
+        ConsoleAttacher()
+        {
+            if (AttachConsole(ATTACH_PARENT_PROCESS))
+            {
+                freopen_s(&new_stdout, "CONOUT$", "w", stdout);
+                freopen_s(&new_stderr, "CONOUT$", "w", stderr);
+            }
+        }
+
+        ~ConsoleAttacher()
+        {
+            if (new_stdout != nullptr) fclose(new_stdout);
+            if (new_stderr != nullptr) fclose(new_stderr);
+            FreeConsole();
+        }
+
+    private:
+        FILE* new_stdout{ nullptr };
+        FILE* new_stderr{ nullptr };
+};
+
 int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
 {
+    ConsoleAttacher attached_console;
+    CommandLineArguments cli;
+    try
+    {
+        cli.parse(__argc, __argv);
+    }
+    catch (const args::Help&)
+    {
+        cout << cli.parser;
+        return 0;
+    }
+    catch (const args::ParseError& e)
+    {
+        cerr << e.what() << endl;
+        cerr << cli.parser;
+        return 1;
+    }
+
     auto d3d_device = create_device();
     auto accelerator_view = concurrency::direct3d::create_accelerator_view(d3d_device);
 
@@ -52,9 +118,9 @@ int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
 
     auto presenter = BuddhabrotPresenter(window.handle(), d3d_device);
 
-    auto red_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(image_dimension, image_dimension), points_per_iteration, 1024);
-    auto green_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(image_dimension, image_dimension), points_per_iteration, 2048);
-    auto blue_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(image_dimension, image_dimension), points_per_iteration, 4096);
+    auto red_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(cli.dimension, cli.dimension), cli.points_per_iteration, 1024);
+    auto green_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(cli.dimension, cli.dimension), cli.points_per_iteration, 2048);
+    auto blue_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(cli.dimension, cli.dimension), cli.points_per_iteration, 4096);
 
     auto msg = MSG();
     while (msg.message != WM_QUIT)
@@ -77,6 +143,6 @@ int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
         }
     }
     
-    write_png_from_arrays(image_dimension, image_dimension, red_generator.get_record_array(), green_generator.get_record_array(), blue_generator.get_record_array(), L"image-amp.png");
+    write_png_from_arrays(cli.dimension, cli.dimension, red_generator.get_record_array(), green_generator.get_record_array(), blue_generator.get_record_array(), cli.filename);
     return 0;
 }
