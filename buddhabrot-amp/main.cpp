@@ -118,9 +118,9 @@ int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
 
     auto presenter = BuddhabrotPresenter(window.handle(), d3d_device);
 
-    auto red_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(cli.dimension, cli.dimension), cli.points_per_iteration, 1024);
-    auto green_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(cli.dimension, cli.dimension), cli.points_per_iteration, 2048);
-    auto blue_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(cli.dimension, cli.dimension), cli.points_per_iteration, 4096);
+    auto red_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(cli.dimension, cli.dimension), cli.points_per_iteration, make_tuple(0, 1024));
+    auto green_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(cli.dimension, cli.dimension), cli.points_per_iteration, make_tuple(0, 2048));
+    auto blue_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(cli.dimension, cli.dimension), cli.points_per_iteration, make_tuple(0, 4096));
 
     auto msg = MSG();
     while (msg.message != WM_QUIT)

@@ -14,11 +14,11 @@
 
 using namespace std;
 
-BuddhabrotGenerator::BuddhabrotGenerator(concurrency::accelerator_view accel_view, concurrency::extent<2> dims, unsigned points_per_iteration, unsigned max_escape_iterations) :
+BuddhabrotGenerator::BuddhabrotGenerator(concurrency::accelerator_view accel_view, concurrency::extent<2> dims, unsigned points_per_iteration, std::tuple<unsigned, unsigned> iteration_range) :
     accel_view(accel_view),
     dims(dims),
     points_per_iteration(points_per_iteration),
-    max_escape_iterations(max_escape_iterations),
+    iteration_range(iteration_range),
     count_array(concurrency::array<unsigned, 2>(dims, accel_view))
 {
 }
@@ -26,8 +26,10 @@ BuddhabrotGenerator::BuddhabrotGenerator(concurrency::accelerator_view accel_vie
 const concurrency::array<unsigned, 2>& BuddhabrotGenerator::iterate()
 {
     auto randoms = generate_random_numbers();
-    auto max_iterations = max_escape_iterations;
     auto& recording_array = count_array;
+
+    const auto min_iterations = std::get<0>(iteration_range);
+    const auto max_iterations = std::get<1>(iteration_range);
 
     parallel_for_each(concurrency::extent<1>(points_per_iteration),
         [=, &randoms, &recording_array](concurrency::index<1> idx) restrict(amp)
@@ -43,7 +45,10 @@ const concurrency::array<unsigned, 2>& BuddhabrotGenerator::iterate()
                 z = c + (z * z);
                 if (z.magnitude_squared() >= 4.0)
                 {
-                    iterate_again_and_record = true;
+                    if (i >= min_iterations)
+                    {
+                        iterate_again_and_record = true;
+                    }
                     break;
                 }
             }
