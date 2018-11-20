@@ -101,9 +101,9 @@ void BuddhabrotPresenter::render_and_present(const concurrency::array<unsigned, 
         [&, intermediate_view](concurrency::index<2> idx) restrict(amp)
         {
             concurrency::graphics::unorm_4 value(
-                concurrency::fast_math::sqrt(r[idx] / static_cast<float>(red_max_array[0])),
-                concurrency::fast_math::sqrt(g[idx] / static_cast<float>(green_max_array[0])),
-                concurrency::fast_math::sqrt(b[idx] / static_cast<float>(blue_max_array[0])),
+                concurrency::fast_math::powf(r[idx] / static_cast<float>(red_max_array[0]), 1.5),
+                concurrency::fast_math::powf(g[idx] / static_cast<float>(green_max_array[0]), 1.5),
+                concurrency::fast_math::powf(b[idx] / static_cast<float>(blue_max_array[0]), 1.5),
                 1.0);
 
             intermediate_view.set(idx, value);

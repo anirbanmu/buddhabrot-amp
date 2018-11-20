@@ -52,7 +52,7 @@ struct CommandLineArguments
     }
 
     unsigned dimension{ 4096 };
-    unsigned points_per_iteration{ 512 * 512 };
+    unsigned points_per_iteration{ 2048 * 2048 };
     wstring filename{ L"buddhabrot-amp.png" };
     args::ArgumentParser parser{ "Usage: buddhabrot-amp.exe {OPTIONS}...", "Source & help at: <https://github.com/anirbanmu/buddhabrot-amp>" };
     args::HelpFlag help{ parser, "help", "Display this help menu", { 'h', "help" } };
@@ -118,9 +118,10 @@ int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
 
     auto presenter = BuddhabrotPresenter(window.handle(), d3d_device);
 
-    auto red_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(cli.dimension, cli.dimension), cli.points_per_iteration, make_tuple(0, 1024));
-    auto green_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(cli.dimension, cli.dimension), cli.points_per_iteration, make_tuple(0, 2048));
-    auto blue_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(cli.dimension, cli.dimension), cli.points_per_iteration, make_tuple(0, 4096));
+    std::array<std::tuple<unsigned, unsigned>, 3> iteration_ranges{ make_tuple(0, 1024), make_tuple(1024, 2048), make_tuple(2048, 4096) };
+    auto generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(cli.dimension, cli.dimension), cli.points_per_iteration, iteration_ranges);
+    // auto green_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(cli.dimension, cli.dimension), cli.points_per_iteration, make_tuple(10240, 20000));
+    // auto blue_generator = BuddhabrotGenerator(accelerator_view, concurrency::extent<2>(cli.dimension, cli.dimension), cli.points_per_iteration, make_tuple(20000, 30000));
 
     auto msg = MSG();
     while (msg.message != WM_QUIT)
@@ -139,10 +140,11 @@ int CALLBACK WinMain(HINSTANCE h_instance, HINSTANCE, LPSTR, int)
                 // OutputDebugString(s.str().c_str());
                 presenter.resize();
             }
-            presenter.render_and_present(red_generator.iterate(), green_generator.iterate(), blue_generator.iterate());
+            generator.iterate();
+            presenter.render_and_present(generator.get_record_array<0>(), generator.get_record_array<1>(), generator.get_record_array<2>());
         }
     }
     
-    write_png_from_arrays(cli.dimension, cli.dimension, red_generator.get_record_array(), green_generator.get_record_array(), blue_generator.get_record_array(), cli.filename);
+    write_png_from_arrays(cli.dimension, cli.dimension, generator.get_record_array<0>(), generator.get_record_array<1>(), generator.get_record_array<2>(), cli.filename);
     return 0;
 }
